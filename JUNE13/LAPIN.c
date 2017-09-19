@@ -1,0 +1,30 @@
+// LAPIN
+
+#include <stdio.h>
+#include <string.h>
+
+int main(){
+  char s[1001],c, f;
+  int T, i, a[26],b[26], l;
+  scanf("%d\n",&T);
+  while(T--){
+    gets(s);
+    l = strlen(s);
+    for(i = 0; i < 26; i++)
+      a[i] = b[i] = 0;
+    for(i = 0; i < l/2; i++)
+      a[s[i]-97]++;
+    i = l%2 ? i+1 : i;
+    for(i; i < l; i++)
+      b[s[i]-97]++;
+    f = 1;
+    for(i = 0; i < 26; i++){
+      if(a[i] != b[i]){
+        f = 0;
+        break;
+      }
+    }
+    printf(f?"YES\n":"NO\n");
+  }
+  return 0;
+}

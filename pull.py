@@ -1,8 +1,8 @@
 # chef pull
 
+import os
 from selenium.webdriver import Chrome
 
-dir_home = 'C:\\System\\chef\\pull'
 url_home = 'http://www.codechef.com/'
 url_user = url_home + 'users/rodomonte/'
 
@@ -44,13 +44,37 @@ for contest in pmap:
     br.get(url_home + '/' + contest + '/status/' + prob + ',rodomonte')
     html = br.page_source
     html = html[html.find('/misc/tick-icon.gif'):]
+
+    for i in range(3):
+      html = html[html.find('width')+5:]
+    html = html[html.find('>'):]
+    i = html.find('<')
+    lang = html[1:i]
+    if lang == 'C': suf = '.c'
+    elif lang.startswith('C++'): suf = '.cc'
+    elif lang.startswith('PY'): suf = '.py'
+    else: suf = '.??'
+
     html = html[html.find('<a href=')+23:]
     i = html.find('" target')
     url_sub = url_home + 'viewplaintext/' + html[:i]
 
     br.get(url_sub)
-    code = br.page_source
+    html = br.page_source
+    html = html[html.find('<pre>')+5:]
+    code = html[:html.find('</pre>')]
+    code = code.replace('&lt;', '<')
+    code = code.replace('&gt;', '>')
+    code = code.replace('&amp;', '&')
+    code = code.replace('\t', '  ')
 
-    #! CREATE DIR, SAVE FILE
+    path = os.getcwd() + '\\' + contest
+    if not os.path.exists(path):
+      os.makedirs(path)
+    path += '\\' + prob + suf
+    if not os.path.exists(path):
+      outfile = open(path, 'w')
+      outfile.write(code)
+      outfile.close()
 
 br.quit()
