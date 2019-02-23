@@ -4,7 +4,7 @@ from time import sleep
 from selenium.webdriver import Chrome
 
 user = 'rodomonte'
-pw = 'agB3llreincarna'
+pw = ''
 url_home = 'http://www.codechef.com/'
 url_user = url_home + 'users/' + user
 url_chal = url_home + 'problems/challenge/'
