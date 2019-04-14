@@ -79,9 +79,26 @@ int lcm(int a, int b){
 double nck[40][40]={{0}};
 nck[0][0] = 1;
 for(i = 1; i < 40; i++){
-	nck[i][0] = 1;
-	for(j = 1; j <= i; j++)
-		nck[i][j] = nck[i-1][j-1] + nck[i-1][j];
+  nck[i][0] = 1;
+  for(j = 1; j <= i; j++)
+    nck[i][j] = nck[i-1][j-1] + nck[i-1][j];
+}
+
+// Divisors
+int pf[1000001][256], pn[1000001];
+for(i = 0; i <= 1000000; ++i) pn[i] = pf[i][0] = 1;
+for(i = 2; i <= 1000000; ++i)
+  for(j = i; j <= 1000000; j += i)
+    pf[j][pn[j]++] = i;
+
+// Sieve
+char s[1000001]={0};
+int p[78498], pn;
+for(i = 2, pn = 0; i <= 1000000; ++i){
+  if(s[i]) continue;
+  for(j = (i<<1); j <= 1000000; j += i)
+    s[i] = 1;
+  p[pn++] = i;
 }
 
 // Quick sort
@@ -93,11 +110,10 @@ void sort(int* a, int n){
     if(*r > p){ r--; continue; }
     t = *l; *l++ = *r; *r-- = t;
   }
-  sort(a, r-a+1);
-  sort(l, a+n-l);
+  sort(a, r-a+1), sort(l, a+n-l);
 }
 
-// BIT
+// FWT
 int N, li[20],ln,an;
 ll a[2000000];
 
@@ -113,29 +129,46 @@ void build(){
   an = j;
 }
 
-void update(int i, int v){
-  int l;
-  l = 1, a[i] += v; //!
-  while(l < ln) a[(i >>= 1) + li[l++]] += v; //!
-}
 
-ll query(int i0, int i1){
+// Need push fn
+void update(int L, int R, int v){
   int i,j,l,e,ia,ib;
-  ll r;
-  r = l = 0, e = 1, i = i0;
-  while(i0 <= i1){
+  l = 0, e = 1, i = L;
+  while(L <= R){
     if(i != an-1 && i != li[l+1]-1){
-      j = li[l+1] + (i0 >> l+1);
+      j = li[l+1] + (L >> l+1);
       ia = (j - li[l+1]) << (l+1), ib = ia + (e << 1) - 1;
-      if(ia == i0 && ib <= i1){ i = j, e <<= 1, l++; continue; }
+      if(ia == L && ib <= R){ i = j, e <<= 1, l++; continue; }
     }
     ia = (i - li[l]) << l;
-    if(ia == i0){
-      r += a[i]; //!
-      i0 += e;
-      if(i0 > i1) break;
+    if(ia == L){
+      a[i] += v;
+      push(i);
+      L += e;
+      if(L > R) break;
     }
-    if(i1 - i0 + 1 < e) e >>= 1, l--, i = li[l] + (ia >> l) + 1;
+    if(R - L + 1 < e) e >>= 1, l--, i = li[l] + (ia >> l) + 1;
+    else i++;
+  }
+}
+
+ll query(int L, int R){
+  int i,j,l,e,ia,ib;
+  ll r;
+  r = l = 0, e = 1, i = L;
+  while(L <= R){
+    if(i != an-1 && i != li[l+1]-1){
+      j = li[l+1] + (L >> l+1);
+      ia = (j - li[l+1]) << (l+1), ib = ia + (e << 1) - 1;
+      if(ia == L && ib <= R){ i = j, e <<= 1, l++; continue; }
+    }
+    ia = (i - li[l]) << l;
+    if(ia == L){
+      r += a[i]; //!
+      L += e;
+      if(L > R) break;
+    }
+    if(R - L + 1 < e) e >>= 1, l--, i = li[l] + (ia >> l) + 1;
     else i++;
   }
   return r;
@@ -144,30 +177,30 @@ ll query(int i0, int i1){
 // Hashing
 int KMOD; // = N/.75 (# of hash buckets)
 int key(char* s){
-	// MURMUR
-	int l,m,r,h,l4,i,i4,k;
-	l = strlen(s), m = 0x5bd1e995, r = 24;
-	h = 0x9747b28c ^ l, l4 = l / 4;
-	for(i = 0; i < l4; i++){
-		i4 = i * 4;
-		k = (s[i4] & 0xff);
-		k += ((s[i4+1] & 0xff) << 8);
-		k += ((s[i4+2] & 0xff) << 16);
-		k += ((s[i4+3] & 0xff) << 24);
-		k *= m;
-		k ^= k >> r;
-		k *= m;
-		h *= m;
-		h ^= k;
-	}
-	switch(l % 4){
-	case 3: h ^= (s[(l&~3)+2] & 0xff) << 16;
-	case 2: h ^= (s[(l&~3)+1] & 0xff) << 8;
-	case 1: h ^= (s[l&~3] & 0xff);
-			h *= m;
-	}
-	h ^= h >> 13;
-	h *= m;
-	h ^= h >> 15;
-	return h % KMOD;
+  // MURMUR
+  int l,m,r,h,l4,i,i4,k;
+  l = strlen(s), m = 0x5bd1e995, r = 24;
+  h = 0x9747b28c ^ l, l4 = l / 4;
+  for(i = 0; i < l4; i++){
+    i4 = i * 4;
+    k = (s[i4] & 0xff);
+    k += ((s[i4+1] & 0xff) << 8);
+    k += ((s[i4+2] & 0xff) << 16);
+    k += ((s[i4+3] & 0xff) << 24);
+    k *= m;
+    k ^= k >> r;
+    k *= m;
+    h *= m;
+    h ^= k;
+  }
+  switch(l % 4){
+  case 3: h ^= (s[(l&~3)+2] & 0xff) << 16;
+  case 2: h ^= (s[(l&~3)+1] & 0xff) << 8;
+  case 1: h ^= (s[l&~3] & 0xff);
+    h *= m;
+  }
+  h ^= h >> 13;
+  h *= m;
+  h ^= h >> 15;
+  return h % KMOD;
 }
