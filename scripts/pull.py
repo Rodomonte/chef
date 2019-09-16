@@ -1,18 +1,26 @@
 # chef pull
 
-import os
+from os import getcwd, makedirs
+from os.path import exists
+from shutil import move
 from selenium.webdriver import Chrome
 
 url_home = 'http://www.codechef.com/'
 url_user = url_home + 'users/rodomonte/'
 
-# POPULATE PMAP FROM PROFILE
+# LOGIN
 
-pmap = {}
+br = Chrome(executable_path='../../other/sw/chromedriver.exe')
+br.get(url_home)
+br.find_element_by_id('edit-name').send_keys('rodomonte')
+br.find_element_by_id('edit-pass').send_keys('agB3llreincarna') #!
+br.find_element_by_id('edit-submit').click()
 
-br = Chrome()
+# GET PROBLEMS FROM PROFILE
+
 br.get(url_user)
 html = br.page_source
+pmap = {}
 
 html = html[html.find('Practice:'):]
 while True:
@@ -34,14 +42,16 @@ while True:
     i = html.find('</a>')
     prob = html[:i]
     probs += [prob]
-  pmap[contest] = probs
+
+  if not exists('../archive/'+contest):
+    pmap[contest] = probs
 
 # FETCH AND SAVE SUBMISSIONS
 
 for contest in pmap:
   probs = pmap[contest]
   for prob in probs:
-    br.get(url_home + '/' + contest + '/status/' + prob + ',rodomonte')
+    br.get(url_home + contest + '/status/' + prob + ',rodomonte')
     html = br.page_source
     html = html[html.find('/misc/tick-icon.gif'):]
 
@@ -68,11 +78,11 @@ for contest in pmap:
     code = code.replace('&amp;', '&')
     code = code.replace('\t', '  ')
 
-    path = os.getcwd() + '\\' + contest
-    if not os.path.exists(path):
-      os.makedirs(path)
-    path += '\\' + prob + suf
-    if not os.path.exists(path):
+    path = '../archive/' + contest
+    if not exists(path):
+      makedirs(path)
+    path += '/' + prob + suf
+    if not exists(path):
       outfile = open(path, 'w')
       outfile.write(code)
       outfile.close()

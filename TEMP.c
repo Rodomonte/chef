@@ -5,7 +5,7 @@
 #define gc getchar_unlocked
 
 int getn(){
-  int n = 0, c = gc(), f = 1;
+  int n = 0; char c = gc(), f = 1;
   while(c != '-' && (c < '0' || c > '9')) c = gc();
   if(c == '-') f = -1, c = gc();
   while(c >= '0' && c <= '9') n = (n<<3) + (n<<1) + c - '0', c = gc();
@@ -24,9 +24,22 @@ int main(){
 
 // METHODS
 
+#define pc putchar_unlocked
+char pb[10];
+void putn(int n){
+  if(!n) pc('0');
+  if(n < 0){ pc('-'); n *= -1; }
+  int pi = 0;
+  while(n) pb[pi++] = (n%10) + '0', n /= 10;
+  while(pi) pc(pb[--pi]);
+}
+
 int abs(int a){ return (a < 0) ? -a : a; }
 int min(int a, int b){ return (a < b) ? a : b; }
 int max(int a, int b){ return (a > b) ? a : b; }
+
+int gcd(int a, int b){ return b ? gcd(b,a%b) : a; }
+int lcm(int a, int b){ return a / gcd(a,b) * b; }
 
 int madd(int a, int b){ return ((a += b) >= MOD) ? a-MOD : a; }
 int msub(int a, int b){ return ((a -= b) < 0) ? a+MOD : a; }
@@ -48,55 +61,23 @@ int mdiv(int a, int b){
   return mmul(inv, a);
 }
 
-// Negative integer input
-#define gc getchar_unlocked
-int getn(){
-  int n = 0, c = gc(), f = 1;
-  while(c != '-' && (c < '0' || c > '9')) c = gc();
-  if(c == '-') f = -1, c = gc();
-  while(c >= '0' && c <= '9')
-    n = (n<<3) + (n<<1) + c - '0', c = gc();
-  return n * f;
-}
-
-// Negative integer output
-#define pc putchar//_unlocked
-char pb[10];
-void putn(int n){
-  if(!n) pc('0');
-  if(n < 0){ pc('-'); n *= -1; }
-  int pi = 0;
-  while(n) pb[pi++] = (n%10) + '0', n /= 10;
-  while(pi) pc(pb[--pi]);
-}
-
-// Fast power
-#define ll long long
-#define MOD 1000000007
-int pow(ll n, int e){
-  ll r = 1;
+int mpow(int n, int e){
+  int r = 1;
   while(e){
-    if(e & 1) r = r * n % MOD;
-    n = n * n % MOD, e >>= 1;
+    if(e & 1) r = mmul(r, n);
+    n = mmul(n, n), e >>= 1;
   }
-  return (int)r;
+  return r;
 }
 
-// Greatest common denominator
-int gcd(int a, int b){ return b ? gcd(b,a%b) : a; }
-// Least common multiple
-int lcm(int a, int b){ return a / gcd(a,b) * b; }
-
-// nCk recurrence relation
-double nck[40][40]={{0}};
+int nck[2001][2001]={{0}};
 nck[0][0] = 1;
-for(i = 1; i < 40; i++){
+for(i = 1; i <= 2000; ++i){
   nck[i][0] = 1;
-  for(j = 1; j <= i; j++)
-    nck[i][j] = nck[i-1][j-1] + nck[i-1][j];
+  for(j = 1; j <= i; ++j)
+    nck[i][j] = madd(nck[i-1][j-1], nck[i-1][j]);
 }
 
-// Quick sort
 void sort(int* a, int n){
   if(n < 2) return;
   int p = a[n>>1], *l = a, *r = a+n-1, t;
