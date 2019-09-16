@@ -3,6 +3,7 @@
 from os import getcwd, makedirs
 from os.path import exists
 from shutil import move
+from glob import glob
 from selenium.webdriver import Chrome
 
 url_home = 'http://www.codechef.com/'
@@ -13,16 +14,25 @@ url_user = url_home + 'users/rodomonte/'
 br = Chrome(executable_path='../../other/sw/chromedriver.exe')
 br.get(url_home)
 br.find_element_by_id('edit-name').send_keys('rodomonte')
-br.find_element_by_id('edit-pass').send_keys('agB3llreincarna') #!
+br.find_element_by_id('edit-pass').send_keys('') #!
 br.find_element_by_id('edit-submit').click()
 
 # GET PROBLEMS FROM PROFILE
 
 br.get(url_user)
 html = br.page_source
-pmap = {}
+pmap, prac, cont = {}, {}, {}
 
 html = html[html.find('Practice:'):]
+while True:
+  i = html.find('rodomonte')
+  j = html.find('</span>')
+  if i == -1 or j < i: break
+
+  html = html[i+11:]
+  i = html.find('</a>')
+  prac[html[:i]] = 1
+
 while True:
   i = html.find('<p>')
   j = html.find('</article>')
@@ -42,16 +52,27 @@ while True:
     i = html.find('</a>')
     prob = html[:i]
     probs += [prob]
-
-  if not exists('../archive/'+contest):
+    cont[prob] = 1
     pmap[contest] = probs
+
+probs = []
+for prob in prac.keys():
+  if prob not in cont:
+    probs += [prob]
+  else:
+    print(prob + ' copied in practice')
+pmap['PRACTICE'] = probs
 
 # FETCH AND SAVE SUBMISSIONS
 
 for contest in pmap:
   probs = pmap[contest]
   for prob in probs:
-    br.get(url_home + contest + '/status/' + prob + ',rodomonte')
+    paths = glob('../archive/' + contest + '/' + prob + '.*')
+    if len(paths) > 0: continue
+
+    t = '' if contest == 'PRACTICE' else contest + '/'
+    br.get(url_home + t + 'status/' + prob + ',rodomonte')
     html = br.page_source
     html = html[html.find('/misc/tick-icon.gif'):]
 

@@ -1,0 +1,17 @@
+using System;
+public class Intest {
+    public static void Main() {
+        int i,d,n,l=0;
+        string[] f = new string[2];
+        string s;
+        s = Console.ReadLine();
+        f = s.Split(' ');
+        n = Int32.Parse(f[0]);
+        d = Int32.Parse(f[1]);
+        int[] data = new int[900000];
+        for(i = 0; i < n; i++)
+            if(Int32.Parse(Console.ReadLine()) % d == 0)
+                l++;
+        Console.WriteLine("{0}",l);
+    }
+}
