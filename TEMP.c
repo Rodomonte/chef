@@ -48,7 +48,7 @@ int mmul(int a, int b){ return (int)((ll)a * b % MOD); }
 int gcde(int a, int b, int* x, int* y){
   if(!a){ *x = 0, *y = 1; return b; }
   int g,x1,y1;
-  g = gcde(b % a, a, x1, y1), *x = y1 - (b / a) * x1, *y = x1;
+  g = gcde(b % a, a, &x1, &y1), *x = y1 - (b / a) * x1, *y = x1;
   return g;
 }
 int minv(int a){
@@ -78,9 +78,22 @@ for(i = 1; i <= 2000; ++i){
     nck[i][j] = madd(nck[i-1][j-1], nck[i-1][j]);
 }
 
+void sort(int* a, int n, char (*lt)()){
+  if(n < 2) return;
+  int p,t,*l,*r;
+  p = a[n>>1], l = a, r = a+n-1;
+  while(l <= r){
+    if(lt(*l, p)){ l++; continue; }
+    if(lt(p, *r)){ r--; continue; }
+    t = *l; *l++ = *r; *r-- = t;
+  }
+  sort(a, r-a+1, lt), sort(l, a+n-l, lt);
+}
+
 void sort(int* a, int n){
   if(n < 2) return;
-  int p = a[n>>1], *l = a, *r = a+n-1, t;
+  int p,t,*l,*r;
+  p = a[n>>1], l = a, r = a+n-1;
   while(l <= r){
     if(*l < p){ l++; continue; }
     if(*r > p){ r--; continue; }
